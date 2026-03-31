@@ -1,0 +1,224 @@
+<Window
+    x:Class="NetWatcher.App.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:NetWatcher.App"
+    x:DataType="vm:MainWindowViewModel"
+    Width="1180"
+    Height="760"
+    MinWidth="980"
+    MinHeight="640"
+    Title="NetWatcher"
+    Background="#08111D"
+    Foreground="#F6F8FB"
+    ShowInTaskbar="True"
+    mc:Ignorable="d">
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer>
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="24" RowSpacing="18">
+      <Border
+          CornerRadius="28"
+          Padding="26"
+          Background="#10233A">
+        <Grid ColumnDefinitions="1.3*,1*" ColumnSpacing="20">
+          <Grid RowDefinitions="Auto,Auto" RowSpacing="20">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+              <StackPanel Spacing="8">
+                <TextBlock FontSize="34" FontWeight="Bold" Text="網路流量監視器" />
+                <TextBlock Foreground="#9DB1C7" Text="即時監看整體頻寬、歷史變化與單一程式流量。" />
+              </StackPanel>
+
+              <Border
+                  Grid.Column="1"
+                  Padding="16,10"
+                  CornerRadius="18"
+                  Background="#183250"
+                  VerticalAlignment="Top">
+                <TextBlock Text="{Binding LastUpdatedText}" />
+              </Border>
+            </Grid>
+
+            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto" ColumnSpacing="16">
+              <Border Width="260" Padding="18" Background="#0E1C30" CornerRadius="20">
+                <StackPanel Spacing="8">
+                  <TextBlock Foreground="#8AA4C1" Text="目前下載速度" />
+                  <TextBlock FontSize="34" FontWeight="Bold" Text="{Binding TotalDownloadSpeedText}" />
+                </StackPanel>
+              </Border>
+
+              <Border Grid.Column="1" Width="260" Padding="18" Background="#0E1C30" CornerRadius="20">
+                <StackPanel Spacing="8">
+                  <TextBlock Foreground="#8AA4C1" Text="目前上傳速度" />
+                  <TextBlock FontSize="34" FontWeight="Bold" Text="{Binding TotalUploadSpeedText}" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Grid>
+
+          <Border Grid.Column="1" Background="#0C1727" CornerRadius="24" Padding="22">
+            <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="16">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <StackPanel Spacing="4">
+                  <TextBlock FontSize="24" FontWeight="SemiBold" Text="總流量歷史" />
+                  <TextBlock Foreground="#8AA4C1" Text="{Binding HistoryWindowText}" />
+                </StackPanel>
+                <Border
+                    Grid.Column="1"
+                    Background="#12233A"
+                    CornerRadius="16"
+                    Padding="12,8"
+                    VerticalAlignment="Top">
+                  <TextBlock Text="{Binding HistoryScaleText}" />
+                </Border>
+              </Grid>
+
+              <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="14">
+                <Border Background="#10233A" CornerRadius="18" Padding="14,12">
+                  <StackPanel Spacing="4">
+                    <TextBlock Foreground="#6CC0FF" Text="下載趨勢" />
+                    <TextBlock FontWeight="SemiBold" Text="{Binding DownloadPeakText}" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Background="#10233A" CornerRadius="18" Padding="14,12">
+                  <StackPanel Spacing="4">
+                    <TextBlock Foreground="#FFA94D" Text="上傳趨勢" />
+                    <TextBlock FontWeight="SemiBold" Text="{Binding UploadPeakText}" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+
+              <Border Grid.Row="2" Background="#08111D" CornerRadius="20" Padding="16">
+                <Viewbox Stretch="Fill" Height="170" HorizontalAlignment="Stretch">
+                  <Grid Width="720" Height="170">
+                    <UniformGrid Rows="4" Columns="1" Margin="0,8">
+                      <Border Height="1" Background="#17314B" />
+                      <Border Height="1" Background="#17314B" />
+                      <Border Height="1" Background="#17314B" />
+                      <Border Height="1" Background="#17314B" />
+                    </UniformGrid>
+
+                    <Canvas Width="720" Height="170">
+                      <Polyline
+                          Canvas.Left="0"
+                          Canvas.Top="0"
+                          Stroke="#6CC0FF"
+                          StrokeThickness="3"
+                          Points="{Binding DownloadHistoryPoints}" />
+                      <Polyline
+                          Canvas.Left="0"
+                          Canvas.Top="0"
+                          Stroke="#FFA94D"
+                          StrokeThickness="3"
+                          Points="{Binding UploadHistoryPoints}" />
+                    </Canvas>
+                  </Grid>
+                </Viewbox>
+              </Border>
+
+              <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                <Button
+                    Content="匯出 CSV"
+                    MinWidth="110"
+                    Click="ExportCsvButton_OnClick" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                  <TextBlock Foreground="#D6E4F5" Text="{Binding ExportStatusText}" />
+                  <TextBlock Foreground="#8AA4C1" Text="{Binding LogCountText}" />
+                </StackPanel>
+                <TextBlock
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Foreground="#8AA4C1"
+                    Text="輸出至 exports 資料夾" />
+              </Grid>
+            </Grid>
+          </Border>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+        <StackPanel Spacing="4">
+          <TextBlock FontSize="22" FontWeight="SemiBold" Text="單一程式流量" />
+          <TextBlock Foreground="#8AA4C1" Text="{Binding ProcessSummaryText}" />
+        </StackPanel>
+        <TextBlock
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            Foreground="#8AA4C1"
+            Text="資料來源：Windows ETW 網路事件，約每秒更新一次" />
+      </Grid>
+
+      <Border Grid.Row="3" Background="#0C1727" CornerRadius="24" Padding="14">
+        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+          <Grid ColumnDefinitions="2*,170,Auto" ColumnSpacing="12" Margin="4,2,4,0">
+            <TextBox
+                Watermark="搜尋程式名稱或路徑"
+                Text="{Binding SearchText}" />
+            <ComboBox
+                Grid.Column="1"
+                SelectedItem="{Binding SelectedSortOption}"
+                ItemsSource="{Binding SortModes}" />
+            <Border
+                Grid.Column="2"
+                Background="#10233A"
+                CornerRadius="14"
+                Padding="12,8">
+              <CheckBox
+                  VerticalAlignment="Center"
+                  IsChecked="{Binding ShowOnlyActive}"
+                  Content="只顯示有流量" />
+            </Border>
+          </Grid>
+
+          <Border Grid.Row="1" Background="#101D31" CornerRadius="18" Padding="12,10">
+            <Grid ColumnDefinitions="2.6*,1.1*,1.1*,0.7*">
+              <TextBlock FontWeight="SemiBold" Text="程式名稱" />
+              <TextBlock Grid.Column="1" FontWeight="SemiBold" HorizontalAlignment="Right" Text="下載速度" />
+              <TextBlock Grid.Column="2" FontWeight="SemiBold" HorizontalAlignment="Right" Text="上傳速度" />
+              <TextBlock Grid.Column="3" FontWeight="SemiBold" HorizontalAlignment="Right" Text="PID" />
+            </Grid>
+          </Border>
+
+          <Grid Grid.Row="2">
+            <ScrollViewer>
+              <ItemsControl ItemsSource="{Binding Processes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ProcessTrafficViewModel">
+                    <Border Margin="4,4" Padding="14,14" Background="#12233A" CornerRadius="18">
+                      <Grid ColumnDefinitions="2.6*,1.1*,1.1*,0.7*" ColumnSpacing="12">
+                        <StackPanel Spacing="4">
+                          <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ProcessName}" />
+                          <TextBlock Foreground="#8AA4C1" FontSize="12" Text="{Binding Description}" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding DownloadSpeedText}" />
+                        <TextBlock Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding UploadSpeedText}" />
+                        <TextBlock Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#8AA4C1" Text="{Binding ProcessId}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <Border
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="#101D31"
+                CornerRadius="20"
+                Padding="22,16"
+                IsVisible="{Binding HasNoProcesses}">
+              <TextBlock
+                  TextAlignment="Center"
+                  Foreground="#8AA4C1"
+                  Text="{Binding ProcessStatusText}" />
+            </Border>
+          </Grid>
+        </Grid>
+      </Border>
+    </Grid>
+  </ScrollViewer>
+</Window>
