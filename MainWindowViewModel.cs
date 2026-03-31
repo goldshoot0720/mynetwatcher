@@ -8,6 +8,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 {
     private const int HistoryCapacity = 60;
     private const int LogCapacity = 3600;
+    private const double WideLayoutBreakpoint = 1380;
     private const double ChartWidth = 720;
     private const double ChartHeight = 180;
 
@@ -42,6 +43,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private bool _isExporting;
     private bool _isDisposed;
     private bool _isProcessSectionExpanded = true;
+    private bool _isWideLayout;
     private SortModeOption _selectedSortOption;
 
     public MainWindowViewModel()
@@ -164,6 +166,88 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public string ProcessSectionActionText => IsProcessSectionExpanded ? "收合" : "展開";
 
+    public bool IsWideLayout
+    {
+        get => _isWideLayout;
+        private set
+        {
+            if (SetProperty(ref _isWideLayout, value))
+            {
+                RaiseResponsiveLayoutChanged();
+            }
+        }
+    }
+
+    public string RootMargin => IsWideLayout ? "24" : "18";
+
+    public string HeroPadding => IsWideLayout ? "26" : "22";
+
+    public string HeroLayoutColumns => IsWideLayout ? "1.35*,1*" : "*";
+
+    public string HeroLayoutRows => IsWideLayout ? "*" : "Auto,Auto";
+
+    public int SummarySectionRow => 0;
+
+    public int SummarySectionColumn => 0;
+
+    public int HistorySectionRow => IsWideLayout ? 0 : 1;
+
+    public int HistorySectionColumn => IsWideLayout ? 1 : 0;
+
+    public string TitleColumns => IsWideLayout ? "*,Auto" : "*";
+
+    public int LastUpdatedRow => IsWideLayout ? 0 : 1;
+
+    public int LastUpdatedColumn => IsWideLayout ? 1 : 0;
+
+    public string LastUpdatedMargin => IsWideLayout ? "0" : "0,12,0,0";
+
+    public string OverviewMetricItemWidth => IsWideLayout ? "280" : "250";
+
+    public string OverviewMetricItemHeight => IsWideLayout ? "108" : "100";
+
+    public double HeroTitleFontSize => IsWideLayout ? 38 : 34;
+
+    public string HistoryHeaderColumns => IsWideLayout ? "*,Auto" : "*";
+
+    public int HistoryScaleRow => IsWideLayout ? 0 : 1;
+
+    public int HistoryScaleColumn => IsWideLayout ? 1 : 0;
+
+    public string HistoryScaleMargin => IsWideLayout ? "0" : "0,10,0,0";
+
+    public string ExportColumns => IsWideLayout ? "Auto,*,Auto" : "*";
+
+    public int ExportStatusRow => IsWideLayout ? 0 : 1;
+
+    public int ExportStatusColumn => IsWideLayout ? 1 : 0;
+
+    public int ExportHintRow => IsWideLayout ? 0 : 2;
+
+    public int ExportHintColumn => 0;
+
+    public string ExportHintMargin => IsWideLayout ? "0" : "0,2,0,0";
+
+    public string SectionHeaderColumns => IsWideLayout ? "*,Auto" : "*";
+
+    public int SectionMetaRow => IsWideLayout ? 0 : 1;
+
+    public int SectionMetaColumn => 0;
+
+    public string SectionMetaMargin => IsWideLayout ? "0" : "0,6,0,0";
+
+    public string ProcessHeaderColumns => IsWideLayout ? "*,Auto" : "*";
+
+    public int ProcessToggleRow => IsWideLayout ? 0 : 1;
+
+    public int ProcessToggleColumn => IsWideLayout ? 1 : 0;
+
+    public string ProcessToggleMargin => IsWideLayout ? "0" : "0,10,0,0";
+
+    public double SearchBoxWidth => IsWideLayout ? 360 : 320;
+
+    public double ChartViewboxHeight => IsWideLayout ? 190 : 170;
+
     public string SearchText
     {
         get => _searchText;
@@ -199,6 +283,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 ApplyFilters();
             }
         }
+    }
+
+    public void UpdateLayoutForWidth(double width)
+    {
+        IsWideLayout = width >= WideLayoutBreakpoint;
     }
 
     private async Task RefreshAsync()
@@ -363,6 +452,45 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         _isDisposed = true;
         _timer.Stop();
         _networkMonitorService.Dispose();
+    }
+
+    private void RaiseResponsiveLayoutChanged()
+    {
+        RaisePropertyChanged(nameof(RootMargin));
+        RaisePropertyChanged(nameof(HeroPadding));
+        RaisePropertyChanged(nameof(HeroLayoutColumns));
+        RaisePropertyChanged(nameof(HeroLayoutRows));
+        RaisePropertyChanged(nameof(SummarySectionRow));
+        RaisePropertyChanged(nameof(SummarySectionColumn));
+        RaisePropertyChanged(nameof(HistorySectionRow));
+        RaisePropertyChanged(nameof(HistorySectionColumn));
+        RaisePropertyChanged(nameof(TitleColumns));
+        RaisePropertyChanged(nameof(LastUpdatedRow));
+        RaisePropertyChanged(nameof(LastUpdatedColumn));
+        RaisePropertyChanged(nameof(LastUpdatedMargin));
+        RaisePropertyChanged(nameof(OverviewMetricItemWidth));
+        RaisePropertyChanged(nameof(OverviewMetricItemHeight));
+        RaisePropertyChanged(nameof(HeroTitleFontSize));
+        RaisePropertyChanged(nameof(HistoryHeaderColumns));
+        RaisePropertyChanged(nameof(HistoryScaleRow));
+        RaisePropertyChanged(nameof(HistoryScaleColumn));
+        RaisePropertyChanged(nameof(HistoryScaleMargin));
+        RaisePropertyChanged(nameof(ExportColumns));
+        RaisePropertyChanged(nameof(ExportStatusRow));
+        RaisePropertyChanged(nameof(ExportStatusColumn));
+        RaisePropertyChanged(nameof(ExportHintRow));
+        RaisePropertyChanged(nameof(ExportHintColumn));
+        RaisePropertyChanged(nameof(ExportHintMargin));
+        RaisePropertyChanged(nameof(SectionHeaderColumns));
+        RaisePropertyChanged(nameof(SectionMetaRow));
+        RaisePropertyChanged(nameof(SectionMetaColumn));
+        RaisePropertyChanged(nameof(SectionMetaMargin));
+        RaisePropertyChanged(nameof(ProcessHeaderColumns));
+        RaisePropertyChanged(nameof(ProcessToggleRow));
+        RaisePropertyChanged(nameof(ProcessToggleColumn));
+        RaisePropertyChanged(nameof(ProcessToggleMargin));
+        RaisePropertyChanged(nameof(SearchBoxWidth));
+        RaisePropertyChanged(nameof(ChartViewboxHeight));
     }
 }
 
