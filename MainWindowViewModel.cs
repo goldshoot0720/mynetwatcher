@@ -41,6 +41,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private string _processStatusText = "正在讀取單一程式流量...";
     private bool _isExporting;
     private bool _isDisposed;
+    private bool _isProcessSectionExpanded = true;
     private SortModeOption _selectedSortOption;
 
     public MainWindowViewModel()
@@ -148,6 +149,20 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         HasNoProcesses
             ? ProcessStatusText
             : $"顯示 {Processes.Count} 個有流量的程式";
+
+    public bool IsProcessSectionExpanded
+    {
+        get => _isProcessSectionExpanded;
+        set
+        {
+            if (SetProperty(ref _isProcessSectionExpanded, value))
+            {
+                RaisePropertyChanged(nameof(ProcessSectionActionText));
+            }
+        }
+    }
+
+    public string ProcessSectionActionText => IsProcessSectionExpanded ? "收合" : "展開";
 
     public string SearchText
     {

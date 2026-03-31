@@ -16,4 +16,12 @@ public partial class MainWindow : Window
             await viewModel.ExportTrafficHistoryAsync();
         }
     }
+
+    private void ToggleProcessSectionButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.IsProcessSectionExpanded = !viewModel.IsProcessSectionExpanded;
+        }
+    }
 }

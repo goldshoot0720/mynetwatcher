@@ -8,6 +8,7 @@
     <UseWindowsForms>false</UseWindowsForms>
     <AssemblyName>NetWatcher.App</AssemblyName>
     <RootNamespace>NetWatcher.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
