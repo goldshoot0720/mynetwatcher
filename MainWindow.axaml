@@ -6,249 +6,217 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:NetWatcher.App"
     x:DataType="vm:MainWindowViewModel"
-    Width="1100"
-    Height="700"
-    MinWidth="860"
-    MinHeight="580"
-    Title="NetWatcher"
-    Background="#08111D"
-    Foreground="#F6F8FB"
-    ShowInTaskbar="True"
+    Width="1180"
+    Height="760"
+    MinWidth="960"
+    MinHeight="640"
+    Title="最瞎結婚理由"
+    Background="#F7EFE5"
+    Foreground="#2C1B12"
     mc:Ignorable="d">
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
 
-  <ScrollViewer>
-    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="{Binding RootMargin}" RowSpacing="16">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="28" RowSpacing="22">
       <Border
-          CornerRadius="28"
-          Padding="{Binding HeroPadding}"
-          Background="#10233A">
-        <Grid
-            x:Name="HeroLayoutGrid"
-            ColumnDefinitions="1.35*,1*"
-            RowDefinitions="*"
-            ColumnSpacing="20"
-            RowSpacing="18">
-          <Grid x:Name="SummarySection" Grid.Row="0" Grid.Column="0" RowDefinitions="Auto,Auto" RowSpacing="20">
-            <Grid x:Name="TitleGrid" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="18">
-              <StackPanel Spacing="8">
-                <TextBlock FontSize="{Binding HeroTitleFontSize}" FontWeight="Bold" Text="網路流量監視器" />
-                <TextBlock Foreground="#9DB1C7" Text="即時監看整體頻寬、歷史變化與單一程式流量。" />
-              </StackPanel>
+          Padding="30"
+          CornerRadius="34"
+          Background="#F2D2A9">
+        <Grid ColumnDefinitions="1.35*,0.95*" ColumnSpacing="24">
+          <StackPanel Spacing="14">
+            <Border
+                HorizontalAlignment="Left"
+                Padding="14,8"
+                CornerRadius="999"
+                Background="#FFF7ED">
+              <TextBlock
+                  FontSize="13"
+                  FontWeight="SemiBold"
+                  Foreground="#A04A1A"
+                  Text="今彩五三九牽紅線版" />
+            </Border>
 
-              <Border x:Name="LastUpdatedBadge"
-                  Grid.Row="0"
-                  Grid.Column="1"
-                  Padding="16,10"
-                  CornerRadius="18"
-                  Background="#183250"
-                  HorizontalAlignment="Left"
-                  VerticalAlignment="Top">
-                <TextBlock Text="{Binding LastUpdatedText}" />
-              </Border>
-            </Grid>
+            <TextBlock
+                MaxWidth="640"
+                FontSize="40"
+                FontWeight="Bold"
+                TextWrapping="Wrap"
+                Text="最瞎結婚理由，瞎到大家笑翻，偏偏又甜得有點合理。" />
 
-            <WrapPanel x:Name="OverviewMetricsPanel" Grid.Row="1" Orientation="Horizontal" ItemWidth="{Binding OverviewMetricItemWidth}" ItemHeight="{Binding OverviewMetricItemHeight}">
-              <Border x:Name="DownloadMetricCard" Width="{Binding OverviewMetricItemWidth}" Padding="18" Background="#0E1C30" CornerRadius="20" Margin="0,0,14,14">
-                <StackPanel Spacing="8">
-                  <TextBlock Foreground="#8AA4C1" Text="目前下載速度" />
-                  <TextBlock FontSize="34" FontWeight="Bold" Text="{Binding TotalDownloadSpeedText}" />
-                </StackPanel>
-              </Border>
+            <TextBlock
+                MaxWidth="680"
+                FontSize="16"
+                Foreground="#6F4B36"
+                TextWrapping="Wrap"
+                Text="{Binding HeroDescription}" />
+          </StackPanel>
 
-              <Border x:Name="UploadMetricCard" Width="{Binding OverviewMetricItemWidth}" Padding="18" Background="#0E1C30" CornerRadius="20" Margin="0,0,14,14">
-                <StackPanel Spacing="8">
-                  <TextBlock Foreground="#8AA4C1" Text="目前上傳速度" />
-                  <TextBlock FontSize="34" FontWeight="Bold" Text="{Binding TotalUploadSpeedText}" />
-                </StackPanel>
-              </Border>
-            </WrapPanel>
-          </Grid>
+          <Border
+              Grid.Column="1"
+              Padding="22"
+              CornerRadius="28"
+              Background="#FFF8F1">
+            <StackPanel Spacing="14">
+              <TextBlock
+                  FontSize="14"
+                  FontWeight="SemiBold"
+                  Foreground="#A04A1A"
+                  Text="目前焦點" />
+              <TextBlock
+                  FontSize="28"
+                  FontWeight="Bold"
+                  TextWrapping="Wrap"
+                  Text="{Binding HighlightedReason.Title}" />
+              <TextBlock
+                  FontSize="15"
+                  Foreground="#6F4B36"
+                  TextWrapping="Wrap"
+                  Text="{Binding HighlightedReason.Reason}" />
 
-          <Border x:Name="HistorySection" Grid.Row="0" Grid.Column="1" Background="#0C1727" CornerRadius="24" Padding="22">
-            <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="16">
-              <Grid x:Name="HistoryHeaderGrid" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="16">
-                <StackPanel Spacing="4">
-                  <TextBlock FontSize="24" FontWeight="SemiBold" Text="總流量歷史" />
-                  <TextBlock Foreground="#8AA4C1" Text="{Binding HistoryWindowText}" />
-                </StackPanel>
-                <Border x:Name="HistoryScaleBadge"
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Background="#12233A"
-                    CornerRadius="16"
-                    Padding="12,8"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top">
-                  <TextBlock Text="{Binding HistoryScaleText}" />
-                </Border>
-              </Grid>
-
-              <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="14">
-                <Border Background="#10233A" CornerRadius="18" Padding="14,12">
-                  <StackPanel Spacing="4">
-                    <TextBlock Foreground="#6CC0FF" Text="下載趨勢" />
-                    <TextBlock FontWeight="SemiBold" Text="{Binding DownloadPeakText}" />
+              <WrapPanel ItemWidth="150" ItemHeight="58">
+                <Border Margin="0,0,12,12" Padding="14,10" CornerRadius="18" Background="#F8E3CF">
+                  <StackPanel>
+                    <TextBlock Foreground="#8B5A3C" Text="篇章" />
+                    <TextBlock FontWeight="Bold" Text="{Binding HighlightedReason.Category}" />
                   </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Background="#10233A" CornerRadius="18" Padding="14,12">
-                  <StackPanel Spacing="4">
-                    <TextBlock Foreground="#FFA94D" Text="上傳趨勢" />
-                    <TextBlock FontWeight="SemiBold" Text="{Binding UploadPeakText}" />
+                <Border Margin="0,0,12,12" Padding="14,10" CornerRadius="18" Background="#F8E3CF">
+                  <StackPanel>
+                    <TextBlock Foreground="#8B5A3C" Text="標籤" />
+                    <TextBlock FontWeight="Bold" Text="{Binding HighlightedReason.Vibe}" />
                   </StackPanel>
                 </Border>
-              </Grid>
-
-              <Border Grid.Row="2" Background="#08111D" CornerRadius="20" Padding="16">
-                <Viewbox Stretch="Fill" Height="{Binding ChartViewboxHeight}" HorizontalAlignment="Stretch">
-                  <Grid Width="720" Height="170">
-                    <UniformGrid Rows="4" Columns="1" Margin="0,8">
-                      <Border Height="1" Background="#17314B" />
-                      <Border Height="1" Background="#17314B" />
-                      <Border Height="1" Background="#17314B" />
-                      <Border Height="1" Background="#17314B" />
-                    </UniformGrid>
-
-                    <Canvas Width="720" Height="170">
-                      <Polyline
-                          Canvas.Left="0"
-                          Canvas.Top="0"
-                          Stroke="#6CC0FF"
-                          StrokeThickness="3"
-                          Points="{Binding DownloadHistoryPoints}" />
-                      <Polyline
-                          Canvas.Left="0"
-                          Canvas.Top="0"
-                          Stroke="#FFA94D"
-                          StrokeThickness="3"
-                          Points="{Binding UploadHistoryPoints}" />
-                    </Canvas>
-                  </Grid>
-                </Viewbox>
-              </Border>
-
-              <Grid x:Name="ExportGrid" Grid.Row="3" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="14" RowSpacing="8">
-                <Button
-                    x:Name="ExportCsvButton"
-                    Content="匯出 CSV"
-                    MinWidth="110"
-                    Click="ExportCsvButton_OnClick" />
-                <StackPanel x:Name="ExportStatusPanel" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                  <TextBlock Foreground="#D6E4F5" Text="{Binding ExportStatusText}" />
-                  <TextBlock Foreground="#8AA4C1" Text="{Binding LogCountText}" />
-                </StackPanel>
-                <TextBlock x:Name="ExportHintText"
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Foreground="#8AA4C1"
-                    Text="輸出至 exports 資料夾" />
-              </Grid>
-            </Grid>
+              </WrapPanel>
+            </StackPanel>
           </Border>
         </Grid>
       </Border>
 
-      <Grid x:Name="SectionHeaderGrid" Grid.Row="2" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" Margin="0,4,0,0">
-        <StackPanel Spacing="4">
-          <TextBlock FontSize="22" FontWeight="SemiBold" Text="單一程式流量" />
-          <TextBlock Foreground="#8AA4C1" Text="{Binding ProcessSummaryText}" />
-        </StackPanel>
-        <TextBlock x:Name="SectionMetaText"
-            Grid.Row="0"
-            Grid.Column="1"
-            VerticalAlignment="Center"
-            Foreground="#8AA4C1"
-            Text="資料來源：Windows ETW 網路事件，約每秒更新一次" />
-      </Grid>
+      <Grid Grid.Row="1" ColumnDefinitions="1.2*,0.8*" ColumnSpacing="18">
+        <Border Padding="22" CornerRadius="28" Background="#FFF8F1">
+          <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="16">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="12">
+              <StackPanel Spacing="4">
+                <TextBlock FontSize="26" FontWeight="Bold" Text="故事選單" />
+                <TextBlock Foreground="#6F4B36" Text="{Binding CategoryDescription}" />
+              </StackPanel>
 
-      <Border Grid.Row="3" Background="#0C1727" CornerRadius="24" Padding="14">
-        <Grid RowDefinitions="Auto,Auto" RowSpacing="14">
-          <Grid x:Name="ProcessHeaderGrid" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="14" Margin="4,2,4,0">
-            <StackPanel Spacing="4">
-              <TextBlock FontSize="18" FontWeight="SemiBold" Text="單一程式流量清單" />
-              <TextBlock Foreground="#8AA4C1" Text="{Binding ProcessSummaryText}" />
-            </StackPanel>
-            <Button x:Name="ProcessToggleButton"
-                Grid.Row="0"
-                Grid.Column="1"
-                HorizontalAlignment="Left"
-                MinWidth="92"
-                Click="ToggleProcessSectionButton_OnClick"
-                Content="{Binding ProcessSectionActionText}" />
-          </Grid>
-
-          <Grid Grid.Row="1" RowDefinitions="Auto,Auto,*" RowSpacing="12" IsVisible="{Binding IsProcessSectionExpanded}">
-            <WrapPanel Orientation="Horizontal" Margin="4,0,4,0">
-              <TextBox x:Name="SearchTextBox"
-                  Width="{Binding SearchBoxWidth}"
-                  MinWidth="240"
-                  Margin="0,0,12,12"
-                  Watermark="搜尋程式名稱或路徑"
-                  Text="{Binding SearchText}" />
               <ComboBox
-                  Width="170"
-                  Margin="0,0,12,12"
-                  SelectedItem="{Binding SelectedSortOption}"
-                  ItemsSource="{Binding SortModes}" />
-              <Border
-                  Background="#10233A"
-                  CornerRadius="14"
-                  Padding="12,8"
-                  Margin="0,0,12,12">
-                <CheckBox
-                    VerticalAlignment="Center"
-                    IsChecked="{Binding ShowOnlyActive}"
-                    Content="只顯示有流量" />
-              </Border>
-            </WrapPanel>
+                  Grid.Column="1"
+                  Width="180"
+                  ItemsSource="{Binding Categories}"
+                  SelectedItem="{Binding SelectedCategory}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ReasonCategoryOption">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
 
-            <Border Grid.Row="1" Background="#101D31" CornerRadius="18" Padding="12,10">
-              <Grid ColumnDefinitions="2.6*,1.1*,1.1*,0.7*">
-                <TextBlock FontWeight="SemiBold" Text="程式名稱" />
-                <TextBlock Grid.Column="1" FontWeight="SemiBold" HorizontalAlignment="Right" Text="下載速度" />
-                <TextBlock Grid.Column="2" FontWeight="SemiBold" HorizontalAlignment="Right" Text="上傳速度" />
-                <TextBlock Grid.Column="3" FontWeight="SemiBold" HorizontalAlignment="Right" Text="PID" />
-              </Grid>
+              <Button
+                  Grid.Column="2"
+                  MinWidth="110"
+                  Padding="16,11"
+                  Background="#D95C18"
+                  Foreground="White"
+                  Content="隨機抽段"
+                  Command="{Binding RandomizeReasonCommand}" />
+
+              <Button
+                  Grid.Column="3"
+                  MinWidth="110"
+                  Padding="16,11"
+                  Background="#EAD8C4"
+                  Foreground="#2C1B12"
+                  Content="下一段"
+                  Command="{Binding NextReasonCommand}" />
+            </Grid>
+
+            <Border Grid.Row="1" Padding="14,12" CornerRadius="18" Background="#F6E7D7">
+              <TextBlock
+                  Foreground="#8B5A3C"
+                  TextWrapping="Wrap"
+                  Text="{Binding SelectionSummary}" />
             </Border>
 
-            <Grid Grid.Row="2" MinHeight="220">
-              <ScrollViewer>
-                <ItemsControl ItemsSource="{Binding Processes}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ProcessTrafficViewModel">
-                      <Border Margin="4,4" Padding="14,14" Background="#12233A" CornerRadius="18">
-                        <Grid ColumnDefinitions="2.6*,1.1*,1.1*,0.7*" ColumnSpacing="12">
-                          <StackPanel Spacing="4">
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ProcessName}" />
-                            <TextBlock Foreground="#8AA4C1" FontSize="12" Text="{Binding Description}" TextTrimming="CharacterEllipsis" />
-                          </StackPanel>
-                          <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding DownloadSpeedText}" />
-                          <TextBlock Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding UploadSpeedText}" />
-                          <TextBlock Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#8AA4C1" Text="{Binding ProcessId}" />
-                        </Grid>
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </ScrollViewer>
-
-              <Border
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Background="#101D31"
-                  CornerRadius="20"
-                  Padding="22,16"
-                  IsVisible="{Binding HasNoProcesses}">
-                <TextBlock
-                    TextAlignment="Center"
-                    Foreground="#8AA4C1"
-                    Text="{Binding ProcessStatusText}" />
-              </Border>
-            </Grid>
+            <ListBox
+                Grid.Row="2"
+                Background="Transparent"
+                BorderThickness="0"
+                ItemsSource="{Binding VisibleReasons}"
+                SelectedItem="{Binding HighlightedReason}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:MarriageReasonItem">
+                  <Border Margin="0,0,0,12" Padding="16" CornerRadius="20" Background="#FFFDF9">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+                      <StackPanel Spacing="8">
+                        <TextBlock FontSize="20" FontWeight="Bold" Text="{Binding Title}" />
+                        <TextBlock Foreground="#6F4B36" Text="{Binding Reason}" TextWrapping="Wrap" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" VerticalAlignment="Top" Spacing="8">
+                        <Border Padding="10,6" CornerRadius="999" Background="#F2D2A9">
+                          <TextBlock FontSize="12" FontWeight="SemiBold" Text="{Binding Vibe}" />
+                        </Border>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
           </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Padding="22" CornerRadius="28" Background="#2C1B12">
+          <StackPanel Spacing="18">
+            <TextBlock
+                FontSize="26"
+                FontWeight="Bold"
+                Foreground="#FFF8F1"
+                Text="可直接複製" />
+
+            <Border Padding="18" CornerRadius="22" Background="#3C261B">
+              <TextBlock
+                  FontSize="22"
+                  FontWeight="Bold"
+                  Foreground="#FFDDB9"
+                  TextWrapping="Wrap"
+                  Text="{Binding HighlightedReason.Title}" />
+            </Border>
+
+            <TextBlock
+                FontSize="16"
+                Foreground="#F7D8C0"
+                TextWrapping="Wrap"
+                Text="{Binding ShareText}" />
+
+            <Button
+                Padding="16,12"
+                Background="#FFD08B"
+                Foreground="#2C1B12"
+                Click="CopyReasonButton_OnClick"
+                Content="複製這段" />
+
+            <TextBlock
+                Foreground="#E7B88F"
+                TextWrapping="Wrap"
+                Text="{Binding CopyStatus}" />
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Border Grid.Row="2" Padding="22" CornerRadius="28" Background="#E9C09B">
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="22" FontWeight="Bold" Text="故事節奏" />
+            <TextBlock Foreground="#6F4B36" TextWrapping="Wrap" Text="這版不走一句式幹話，而是保留你給的整段敘事，讓鋒兄、塗哥、思敏、蕙瑄和今彩五三九的荒謬感完整成立。" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Spacing="8">
+            <TextBlock FontSize="22" FontWeight="Bold" Text="尾韻" />
+            <TextBlock Foreground="#6F4B36" TextWrapping="Wrap" Text="最後那句『如果幸福也能這樣瞎忙，那我明天也去買一張』我也放進摘要段落裡，讓整體收尾更像你原本的版本。" />
+          </StackPanel>
         </Grid>
       </Border>
     </Grid>

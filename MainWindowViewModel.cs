@@ -1,507 +1,183 @@
 using System.Collections.ObjectModel;
-using System.Linq;
-using Avalonia.Threading;
+using System.Windows.Input;
 
 namespace NetWatcher.App;
 
 public sealed class MainWindowViewModel : ObservableObject, IDisposable
 {
-    private const int HistoryCapacity = 60;
-    private const int LogCapacity = 3600;
-    private const double WideLayoutBreakpoint = 1380;
-    private const double ChartWidth = 720;
-    private const double ChartHeight = 180;
-
-    private readonly CsvExportService _csvExportService;
-    private readonly NetworkMonitorService _networkMonitorService;
-    private readonly DispatcherTimer _timer;
-    private readonly Queue<double> _downloadHistory = new();
-    private readonly Queue<double> _uploadHistory = new();
-    private readonly List<TrafficLogEntry> _trafficLog = [];
-    private List<ProcessTrafficViewModel> _allProcesses = [];
-    private string _totalDownloadSpeedText = "0 B/s";
-    private string _totalUploadSpeedText = "0 B/s";
-    private string _lastUpdatedText = "尚未更新";
-    private string _searchText = string.Empty;
-    private bool _showOnlyActive = true;
-    private SortMode _selectedSortMode = SortMode.Total;
-    private readonly IReadOnlyList<SortModeOption> _sortModes =
-    [
-        new(SortMode.Total, "總流量"),
-        new(SortMode.Download, "下載優先"),
-        new(SortMode.Upload, "上傳優先")
-    ];
-    private string _downloadHistoryPoints = "0,180";
-    private string _uploadHistoryPoints = "0,180";
-    private string _historyScaleText = "刻度 0 B/s";
-    private string _historyWindowText = "最近 60 秒";
-    private string _downloadPeakText = "峰值 0 B/s";
-    private string _uploadPeakText = "峰值 0 B/s";
-    private string _exportStatusText = "尚未匯出";
-    private string _logCountText = "已累積 0 筆紀錄";
-    private string _processStatusText = "正在讀取單一程式流量...";
-    private bool _isExporting;
-    private bool _isDisposed;
-    private bool _isProcessSectionExpanded = true;
-    private bool _isWideLayout;
-    private SortModeOption _selectedSortOption;
+    private readonly List<MarriageReasonItem> _allReasons;
+    private readonly IReadOnlyList<ReasonCategoryOption> _categories;
+    private MarriageReasonItem _highlightedReason;
+    private ReasonCategoryOption _selectedCategory;
+    private string _copyStatus = "挑一段順眼的，再按複製。";
 
     public MainWindowViewModel()
     {
-        _csvExportService = new CsvExportService(AppContext.BaseDirectory);
-        _networkMonitorService = new NetworkMonitorService();
-        _selectedSortOption = _sortModes[0];
-        Processes = new ObservableCollection<ProcessTrafficViewModel>();
+        _categories =
+        [
+            new("全部故事", "一次看完整個最瞎結婚理由宇宙"),
+            new("鋒兄篇", "鋒兄、思敏與頭獎號碼牽出的婚事"),
+            new("塗哥篇", "塗哥、蕙瑄與今彩五三九的同款玄學"),
+            new("收尾篇", "把整件事收成最荒謬也最甜的結論")
+        ];
 
-        _timer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromSeconds(1)
-        };
-        _timer.Tick += async (_, _) => await RefreshAsync();
-        _timer.Start();
+        _allReasons =
+        [
+            new(
+                "鋒兄篇",
+                "鋒兄啊你說真的還假的",
+                "鋒兄啊你說真的還假的，塗哥聽了都快笑翻了。鋒兄說要結婚，理由只有一個，今彩五三九開獎那天，頭獎號碼是思敏給的。看著獎金直直落，心也跟著被收編，他說這是命中注定，不娶怎麼對得起這一連串的玄。",
+                "頭獎牽線"
+            ),
+            new(
+                "鋒兄篇",
+                "史上最瞎結婚理由",
+                "史上最瞎結婚理由，今彩五三九牽紅線牽這麼兇。一個思敏一個蕙瑄，號碼一簽兩人都中頭獎圈。你說愛情是運氣還是數學題，笑到流淚也只能說一句，最瞎最瞎卻又有點甜蜜。",
+                "甜到離譜"
+            ),
+            new(
+                "塗哥篇",
+                "換到塗哥這邊",
+                "換到塗哥這邊，故事居然同一套。今彩五三九播報畫面一出來，他整個人直接跳。蕙瑄隨手寫的牌，竟然全中好幾排。他說財神爺都點名了，不跟她走進禮堂實在太不應該。",
+                "同款玄學"
+            ),
+            new(
+                "收尾篇",
+                "喝喜酒的人一桌一桌",
+                "鋒兄牽著思敏，塗哥牽著蕙瑄。喝喜酒的人一桌一桌，還在笑這兩段緣。最瞎結婚理由，結果都開成頭獎。如果幸福也能這樣瞎忙，那我明天也去買一張。",
+                "笑著收尾"
+            )
+        ];
 
-        _ = RefreshAsync();
+        VisibleReasons = new ObservableCollection<MarriageReasonItem>();
+        _selectedCategory = _categories[0];
+        _highlightedReason = _allReasons[0];
+
+        RandomizeReasonCommand = new RelayCommand(SelectRandomReason);
+        NextReasonCommand = new RelayCommand(SelectNextReason);
+
+        RefreshVisibleReasons();
     }
 
-    public ObservableCollection<ProcessTrafficViewModel> Processes { get; }
+    public ObservableCollection<MarriageReasonItem> VisibleReasons { get; }
 
-    public IReadOnlyList<SortModeOption> SortModes => _sortModes;
+    public IReadOnlyList<ReasonCategoryOption> Categories => _categories;
 
-    public string TotalDownloadSpeedText
+    public ICommand RandomizeReasonCommand { get; }
+
+    public ICommand NextReasonCommand { get; }
+
+    public ReasonCategoryOption SelectedCategory
     {
-        get => _totalDownloadSpeedText;
-        set => SetProperty(ref _totalDownloadSpeedText, value);
-    }
-
-    public string TotalUploadSpeedText
-    {
-        get => _totalUploadSpeedText;
-        set => SetProperty(ref _totalUploadSpeedText, value);
-    }
-
-    public string LastUpdatedText
-    {
-        get => _lastUpdatedText;
-        set => SetProperty(ref _lastUpdatedText, value);
-    }
-
-    public string DownloadHistoryPoints
-    {
-        get => _downloadHistoryPoints;
-        set => SetProperty(ref _downloadHistoryPoints, value);
-    }
-
-    public string UploadHistoryPoints
-    {
-        get => _uploadHistoryPoints;
-        set => SetProperty(ref _uploadHistoryPoints, value);
-    }
-
-    public string HistoryScaleText
-    {
-        get => _historyScaleText;
-        set => SetProperty(ref _historyScaleText, value);
-    }
-
-    public string HistoryWindowText
-    {
-        get => _historyWindowText;
-        set => SetProperty(ref _historyWindowText, value);
-    }
-
-    public string DownloadPeakText
-    {
-        get => _downloadPeakText;
-        set => SetProperty(ref _downloadPeakText, value);
-    }
-
-    public string UploadPeakText
-    {
-        get => _uploadPeakText;
-        set => SetProperty(ref _uploadPeakText, value);
-    }
-
-    public string ExportStatusText
-    {
-        get => _exportStatusText;
-        set => SetProperty(ref _exportStatusText, value);
-    }
-
-    public string LogCountText
-    {
-        get => _logCountText;
-        set => SetProperty(ref _logCountText, value);
-    }
-
-    public bool IsExporting
-    {
-        get => _isExporting;
-        set => SetProperty(ref _isExporting, value);
-    }
-
-    public string ProcessStatusText
-    {
-        get => _processStatusText;
-        set => SetProperty(ref _processStatusText, value);
-    }
-
-    public bool HasNoProcesses => Processes.Count == 0;
-
-    public string ProcessSummaryText =>
-        HasNoProcesses
-            ? ProcessStatusText
-            : $"顯示 {Processes.Count} 個有流量的程式";
-
-    public bool IsProcessSectionExpanded
-    {
-        get => _isProcessSectionExpanded;
+        get => _selectedCategory;
         set
         {
-            if (SetProperty(ref _isProcessSectionExpanded, value))
+            if (SetProperty(ref _selectedCategory, value))
             {
-                RaisePropertyChanged(nameof(ProcessSectionActionText));
+                RefreshVisibleReasons();
             }
         }
     }
 
-    public string ProcessSectionActionText => IsProcessSectionExpanded ? "收合" : "展開";
-
-    public bool IsWideLayout
+    public MarriageReasonItem HighlightedReason
     {
-        get => _isWideLayout;
-        private set
-        {
-            if (SetProperty(ref _isWideLayout, value))
-            {
-                RaiseResponsiveLayoutChanged();
-            }
-        }
-    }
-
-    public string RootMargin => IsWideLayout ? "24" : "18";
-
-    public string HeroPadding => IsWideLayout ? "26" : "22";
-
-    public string HeroLayoutColumns => IsWideLayout ? "1.35*,1*" : "*";
-
-    public string HeroLayoutRows => IsWideLayout ? "*" : "Auto,Auto";
-
-    public int SummarySectionRow => 0;
-
-    public int SummarySectionColumn => 0;
-
-    public int HistorySectionRow => IsWideLayout ? 0 : 1;
-
-    public int HistorySectionColumn => IsWideLayout ? 1 : 0;
-
-    public string TitleColumns => IsWideLayout ? "*,Auto" : "*";
-
-    public int LastUpdatedRow => IsWideLayout ? 0 : 1;
-
-    public int LastUpdatedColumn => IsWideLayout ? 1 : 0;
-
-    public string LastUpdatedMargin => IsWideLayout ? "0" : "0,12,0,0";
-
-    public string OverviewMetricItemWidth => IsWideLayout ? "280" : "250";
-
-    public string OverviewMetricItemHeight => IsWideLayout ? "108" : "100";
-
-    public double HeroTitleFontSize => IsWideLayout ? 38 : 34;
-
-    public string HistoryHeaderColumns => IsWideLayout ? "*,Auto" : "*";
-
-    public int HistoryScaleRow => IsWideLayout ? 0 : 1;
-
-    public int HistoryScaleColumn => IsWideLayout ? 1 : 0;
-
-    public string HistoryScaleMargin => IsWideLayout ? "0" : "0,10,0,0";
-
-    public string ExportColumns => IsWideLayout ? "Auto,*,Auto" : "*";
-
-    public int ExportStatusRow => IsWideLayout ? 0 : 1;
-
-    public int ExportStatusColumn => IsWideLayout ? 1 : 0;
-
-    public int ExportHintRow => IsWideLayout ? 0 : 2;
-
-    public int ExportHintColumn => 0;
-
-    public string ExportHintMargin => IsWideLayout ? "0" : "0,2,0,0";
-
-    public string SectionHeaderColumns => IsWideLayout ? "*,Auto" : "*";
-
-    public int SectionMetaRow => IsWideLayout ? 0 : 1;
-
-    public int SectionMetaColumn => 0;
-
-    public string SectionMetaMargin => IsWideLayout ? "0" : "0,6,0,0";
-
-    public string ProcessHeaderColumns => IsWideLayout ? "*,Auto" : "*";
-
-    public int ProcessToggleRow => IsWideLayout ? 0 : 1;
-
-    public int ProcessToggleColumn => IsWideLayout ? 1 : 0;
-
-    public string ProcessToggleMargin => IsWideLayout ? "0" : "0,10,0,0";
-
-    public double SearchBoxWidth => IsWideLayout ? 360 : 320;
-
-    public double ChartViewboxHeight => IsWideLayout ? 190 : 170;
-
-    public string SearchText
-    {
-        get => _searchText;
+        get => _highlightedReason;
         set
         {
-            if (SetProperty(ref _searchText, value))
+            if (SetProperty(ref _highlightedReason, value))
             {
-                ApplyFilters();
+                RaisePropertyChanged(nameof(ShareText));
+                RaisePropertyChanged(nameof(SelectionSummary));
             }
         }
     }
 
-    public bool ShowOnlyActive
+    public string HeroDescription =>
+        "這個版本直接以你提供的文案為主軸，保留『鋒兄、塗哥、思敏、蕙瑄、今彩五三九』這條最荒謬也最完整的敘事線。"
+        + " 不是單純一句笑話，而是一整套聽起來很扯、偏偏又甜得很順的結婚理由。";
+
+    public string CategoryDescription => SelectedCategory.Description;
+
+    public string SelectionSummary =>
+        $"目前篇章：{SelectedCategory.Name}。這一區共有 {VisibleReasons.Count} 段故事，現在看到的是「{HighlightedReason.Title}」。";
+
+    public string ShareText =>
+        $"{HighlightedReason.Title}\n\n{HighlightedReason.Reason}\n\n標籤：{HighlightedReason.Vibe}";
+
+    public string CopyStatus
     {
-        get => _showOnlyActive;
-        set
-        {
-            if (SetProperty(ref _showOnlyActive, value))
-            {
-                ApplyFilters();
-            }
-        }
+        get => _copyStatus;
+        private set => SetProperty(ref _copyStatus, value);
     }
 
-    public SortModeOption SelectedSortOption
+    public void SetCopyStatus(string message)
     {
-        get => _selectedSortOption;
-        set
-        {
-            if (SetProperty(ref _selectedSortOption, value))
-            {
-                _selectedSortMode = value.Mode;
-                ApplyFilters();
-            }
-        }
-    }
-
-    public void UpdateLayoutForWidth(double width)
-    {
-        IsWideLayout = width >= WideLayoutBreakpoint;
-    }
-
-    private async Task RefreshAsync()
-    {
-        var snapshot = await _networkMonitorService.CaptureAsync();
-
-        TotalDownloadSpeedText = TrafficFormatter.FormatBytesPerSecond(snapshot.TotalDownloadBytesPerSecond);
-        TotalUploadSpeedText = TrafficFormatter.FormatBytesPerSecond(snapshot.TotalUploadBytesPerSecond);
-        LastUpdatedText = $"更新時間 {DateTime.Now:HH:mm:ss}";
-        AppendHistory(_downloadHistory, snapshot.TotalDownloadBytesPerSecond);
-        AppendHistory(_uploadHistory, snapshot.TotalUploadBytesPerSecond);
-        AppendTrafficLog(snapshot);
-        UpdateHistoryChart();
-
-        _allProcesses = snapshot.Processes
-            .Select(process => new ProcessTrafficViewModel
-            {
-                ProcessName = process.ProcessName,
-                Description = process.Description,
-                DownloadBytesPerSecond = process.DownloadBytesPerSecond,
-                UploadBytesPerSecond = process.UploadBytesPerSecond,
-                DownloadSpeedText = TrafficFormatter.FormatBytesPerSecond(process.DownloadBytesPerSecond),
-                UploadSpeedText = TrafficFormatter.FormatBytesPerSecond(process.UploadBytesPerSecond),
-                ProcessId = process.ProcessId
-            })
-            .ToList();
-        ProcessStatusText = snapshot.ProcessStatusMessage;
-
-        ApplyFilters();
-    }
-
-    public async Task ExportTrafficHistoryAsync()
-    {
-        if (IsExporting)
-        {
-            return;
-        }
-
-        IsExporting = true;
-        ExportStatusText = "匯出中...";
-
-        try
-        {
-            var filePath = await _csvExportService.ExportTrafficHistoryAsync(_trafficLog);
-            ExportStatusText = $"已匯出 {Path.GetFileName(filePath)}";
-        }
-        catch (Exception ex)
-        {
-            ExportStatusText = $"匯出失敗：{ex.Message}";
-        }
-        finally
-        {
-            IsExporting = false;
-        }
-    }
-
-    private void UpdateHistoryChart()
-    {
-        var maxValue = Math.Max(
-            Math.Max(_downloadHistory.DefaultIfEmpty(0).Max(), _uploadHistory.DefaultIfEmpty(0).Max()),
-            1);
-
-        DownloadHistoryPoints = BuildPolylinePoints(_downloadHistory, maxValue);
-        UploadHistoryPoints = BuildPolylinePoints(_uploadHistory, maxValue);
-        HistoryScaleText = $"刻度 {TrafficFormatter.FormatBytesPerSecond(maxValue)}";
-        HistoryWindowText = $"最近 {_downloadHistory.Count} 秒";
-        DownloadPeakText = $"下載峰值 {TrafficFormatter.FormatBytesPerSecond(_downloadHistory.DefaultIfEmpty(0).Max())}";
-        UploadPeakText = $"上傳峰值 {TrafficFormatter.FormatBytesPerSecond(_uploadHistory.DefaultIfEmpty(0).Max())}";
-    }
-
-    private static void AppendHistory(Queue<double> history, double value)
-    {
-        history.Enqueue(value);
-        while (history.Count > HistoryCapacity)
-        {
-            history.Dequeue();
-        }
-    }
-
-    private void AppendTrafficLog(NetworkSnapshot snapshot)
-    {
-        _trafficLog.Add(new TrafficLogEntry(
-            DateTime.Now,
-            snapshot.TotalDownloadBytesPerSecond,
-            snapshot.TotalUploadBytesPerSecond));
-
-        if (_trafficLog.Count > LogCapacity)
-        {
-            _trafficLog.RemoveRange(0, _trafficLog.Count - LogCapacity);
-        }
-
-        LogCountText = $"已累積 {_trafficLog.Count} 筆紀錄";
-    }
-
-    private static string BuildPolylinePoints(IEnumerable<double> samples, double maxValue)
-    {
-        var values = samples.ToArray();
-        if (values.Length == 0)
-        {
-            return $"0,{ChartHeight}";
-        }
-
-        if (values.Length == 1)
-        {
-            var y = ChartHeight - (values[0] / maxValue * ChartHeight);
-            return $"0,{y:0.##} {ChartWidth},{y:0.##}";
-        }
-
-        var step = ChartWidth / (values.Length - 1);
-        return string.Join(
-            " ",
-            values.Select((value, index) =>
-            {
-                var x = index * step;
-                var y = ChartHeight - (value / maxValue * ChartHeight);
-                return $"{x:0.##},{y:0.##}";
-            }));
-    }
-
-    private void ApplyFilters()
-    {
-        IEnumerable<ProcessTrafficViewModel> query = _allProcesses;
-
-        if (ShowOnlyActive)
-        {
-            query = query.Where(x => x.DownloadBytesPerSecond > 0 || x.UploadBytesPerSecond > 0);
-        }
-
-        if (!string.IsNullOrWhiteSpace(SearchText))
-        {
-            query = query.Where(x =>
-                x.ProcessName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                x.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
-        }
-
-        query = _selectedSortMode switch
-        {
-            SortMode.Download => query.OrderByDescending(x => x.DownloadBytesPerSecond),
-            SortMode.Upload => query.OrderByDescending(x => x.UploadBytesPerSecond),
-            _ => query.OrderByDescending(x => x.TotalBytesPerSecond)
-        };
-
-        var ordered = query.Take(50).ToList();
-
-        Processes.Clear();
-        foreach (var process in ordered)
-        {
-            Processes.Add(process);
-        }
-
-        RaisePropertyChanged(nameof(HasNoProcesses));
-        RaisePropertyChanged(nameof(ProcessSummaryText));
+        CopyStatus = message;
     }
 
     public void Dispose()
     {
-        if (_isDisposed)
+    }
+
+    private void RefreshVisibleReasons()
+    {
+        VisibleReasons.Clear();
+
+        foreach (var item in FilteredReasons())
+        {
+            VisibleReasons.Add(item);
+        }
+
+        HighlightedReason = VisibleReasons.FirstOrDefault() ?? _allReasons[0];
+        CopyStatus = "挑一段順眼的，再按複製。";
+        RaisePropertyChanged(nameof(CategoryDescription));
+        RaisePropertyChanged(nameof(SelectionSummary));
+    }
+
+    private IEnumerable<MarriageReasonItem> FilteredReasons()
+    {
+        if (SelectedCategory.Name == "全部故事")
+        {
+            return _allReasons;
+        }
+
+        return _allReasons.Where(item => item.Category == SelectedCategory.Name);
+    }
+
+    private void SelectRandomReason()
+    {
+        if (VisibleReasons.Count == 0)
         {
             return;
         }
 
-        _isDisposed = true;
-        _timer.Stop();
-        _networkMonitorService.Dispose();
+        HighlightedReason = VisibleReasons[Random.Shared.Next(VisibleReasons.Count)];
+        CopyStatus = "已切到另一段更瞎的版本。";
     }
 
-    private void RaiseResponsiveLayoutChanged()
+    private void SelectNextReason()
     {
-        RaisePropertyChanged(nameof(RootMargin));
-        RaisePropertyChanged(nameof(HeroPadding));
-        RaisePropertyChanged(nameof(HeroLayoutColumns));
-        RaisePropertyChanged(nameof(HeroLayoutRows));
-        RaisePropertyChanged(nameof(SummarySectionRow));
-        RaisePropertyChanged(nameof(SummarySectionColumn));
-        RaisePropertyChanged(nameof(HistorySectionRow));
-        RaisePropertyChanged(nameof(HistorySectionColumn));
-        RaisePropertyChanged(nameof(TitleColumns));
-        RaisePropertyChanged(nameof(LastUpdatedRow));
-        RaisePropertyChanged(nameof(LastUpdatedColumn));
-        RaisePropertyChanged(nameof(LastUpdatedMargin));
-        RaisePropertyChanged(nameof(OverviewMetricItemWidth));
-        RaisePropertyChanged(nameof(OverviewMetricItemHeight));
-        RaisePropertyChanged(nameof(HeroTitleFontSize));
-        RaisePropertyChanged(nameof(HistoryHeaderColumns));
-        RaisePropertyChanged(nameof(HistoryScaleRow));
-        RaisePropertyChanged(nameof(HistoryScaleColumn));
-        RaisePropertyChanged(nameof(HistoryScaleMargin));
-        RaisePropertyChanged(nameof(ExportColumns));
-        RaisePropertyChanged(nameof(ExportStatusRow));
-        RaisePropertyChanged(nameof(ExportStatusColumn));
-        RaisePropertyChanged(nameof(ExportHintRow));
-        RaisePropertyChanged(nameof(ExportHintColumn));
-        RaisePropertyChanged(nameof(ExportHintMargin));
-        RaisePropertyChanged(nameof(SectionHeaderColumns));
-        RaisePropertyChanged(nameof(SectionMetaRow));
-        RaisePropertyChanged(nameof(SectionMetaColumn));
-        RaisePropertyChanged(nameof(SectionMetaMargin));
-        RaisePropertyChanged(nameof(ProcessHeaderColumns));
-        RaisePropertyChanged(nameof(ProcessToggleRow));
-        RaisePropertyChanged(nameof(ProcessToggleColumn));
-        RaisePropertyChanged(nameof(ProcessToggleMargin));
-        RaisePropertyChanged(nameof(SearchBoxWidth));
-        RaisePropertyChanged(nameof(ChartViewboxHeight));
+        if (VisibleReasons.Count == 0)
+        {
+            return;
+        }
+
+        var currentIndex = VisibleReasons.IndexOf(HighlightedReason);
+        var nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % VisibleReasons.Count;
+        HighlightedReason = VisibleReasons[nextIndex];
+        CopyStatus = "已切到下一段故事。";
     }
 }
 
-public enum SortMode
-{
-    Total,
-    Download,
-    Upload
-}
+public sealed record ReasonCategoryOption(string Name, string Description);
 
-public sealed record SortModeOption(SortMode Mode, string Label)
+public sealed record MarriageReasonItem(string Category, string Title, string Reason, string Vibe);
+
+public sealed class RelayCommand(Action execute) : ICommand
 {
-    public override string ToString() => Label;
+    public event EventHandler? CanExecuteChanged;
+
+    public bool CanExecute(object? parameter) => true;
+
+    public void Execute(object? parameter) => execute();
 }
