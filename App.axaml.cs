@@ -41,7 +41,7 @@ public partial class App : Application
 
     private void InitializeTrayIcon()
     {
-        var showItem = new NativeMenuItem("顯示理由選單");
+        var showItem = new NativeMenuItem("顯示主視窗");
         showItem.Click += (_, _) => ShowMainWindow();
 
         var exitItem = new NativeMenuItem("結束程式");
@@ -54,7 +54,7 @@ public partial class App : Application
         _trayIcon = new TrayIcon
         {
             Icon = AppIconFactory.CreateWindowIcon(),
-            ToolTipText = "最瞎結婚理由選單",
+            ToolTipText = "NetWatcher 網路流量監視器",
             Menu = menu,
             IsVisible = true
         };
