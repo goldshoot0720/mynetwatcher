@@ -6,6 +6,7 @@ namespace NetWatcher.App;
 public sealed class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly List<MarriageReasonItem> _allReasons;
+    private readonly BirthdayEasterEgg? _birthdayEasterEgg;
     private readonly IReadOnlyList<ReasonCategoryOption> _categories;
     private MarriageReasonItem _highlightedReason;
     private ReasonCategoryOption _selectedCategory;
@@ -13,6 +14,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public MainWindowViewModel()
     {
+        _birthdayEasterEgg = BirthdayEasterEgg.CreateFor(DateTime.Today);
+
         _categories =
         [
             new("全部故事", "一次看完整個最瞎結婚理由宇宙"),
@@ -67,6 +70,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public ICommand NextReasonCommand { get; }
 
+    public bool IsBirthdayEasterEggVisible => _birthdayEasterEgg is not null;
+
+    public string BirthdayBadge => _birthdayEasterEgg?.Badge ?? string.Empty;
+
+    public string BirthdayHeadline => _birthdayEasterEgg?.Headline ?? string.Empty;
+
+    public string BirthdaySubheadline => _birthdayEasterEgg?.Subheadline ?? string.Empty;
+
+    public string BirthdayHighlight => _birthdayEasterEgg?.Highlight ?? string.Empty;
+
+    public string BirthdaySupportLine => _birthdayEasterEgg?.SupportLine ?? string.Empty;
+
     public ReasonCategoryOption SelectedCategory
     {
         get => _selectedCategory;
@@ -92,9 +107,22 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    public string HeroDescription =>
-        "這個版本直接以你提供的文案為主軸，保留『鋒兄、塗哥、思敏、蕙瑄、今彩五三九』這條最荒謬也最完整的敘事線。"
-        + " 不是單純一句笑話，而是一整套聽起來很扯、偏偏又甜得很順的結婚理由。";
+    public string HeroDescription
+    {
+        get
+        {
+            var baseText =
+                "這個版本直接以你提供的文案為主軸，保留鋒兄、塗哥、思敏、蕙瑄與今彩五三九這條最荒謬也最完整的敘事線。"
+                + " 不是單純一句笑話，而是一整套聽起來很扯、偏偏又甜得很順的結婚理由。";
+
+            if (_birthdayEasterEgg is null)
+            {
+                return baseText;
+            }
+
+            return baseText + " 今天也會依日期自動加開生日彩蛋特效。";
+        }
+    }
 
     public string CategoryDescription => SelectedCategory.Description;
 
@@ -172,6 +200,34 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 public sealed record ReasonCategoryOption(string Name, string Description);
 
 public sealed record MarriageReasonItem(string Category, string Title, string Reason, string Vibe);
+
+public sealed record BirthdayEasterEgg(
+    string Badge,
+    string Headline,
+    string Subheadline,
+    string Highlight,
+    string SupportLine)
+{
+    public static BirthdayEasterEgg? CreateFor(DateTime today)
+    {
+        return (today.Month, today.Day) switch
+        {
+            (4, 3) => new BirthdayEasterEgg(
+                "4 月 3 日彩蛋",
+                "塗哥生日快樂特效已啟動",
+                "今天一打開頁面就送上生日彩蛋，主角是塗哥，旁邊還要把今彩539頭獎得主鋒兄一起請上場。",
+                "今彩539頭獎得主鋒兄",
+                "塗哥生日快樂"),
+            (11, 27) => new BirthdayEasterEgg(
+                "11 月 27 日彩蛋",
+                "鋒兄生日快樂特效已啟動",
+                "每年 11 月 27 日自動切到鋒兄主場模式，讓頁面直接高調祝壽，並補上他的榜首稱號。",
+                "高考三級資訊處理榜首鋒兄",
+                "鋒兄生日快樂"),
+            _ => null
+        };
+    }
+}
 
 public sealed class RelayCommand(Action execute) : ICommand
 {

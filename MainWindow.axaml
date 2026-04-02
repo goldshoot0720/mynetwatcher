@@ -7,9 +7,9 @@
     xmlns:vm="using:NetWatcher.App"
     x:DataType="vm:MainWindowViewModel"
     Width="1180"
-    Height="760"
+    Height="820"
     MinWidth="960"
-    MinHeight="640"
+    MinHeight="680"
     Title="最瞎結婚理由"
     Background="#F7EFE5"
     Foreground="#2C1B12"
@@ -19,8 +19,63 @@
   </Design.DataContext>
 
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-    <Grid RowDefinitions="Auto,Auto,*" Margin="28" RowSpacing="22">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="28" RowSpacing="22">
       <Border
+          IsVisible="{Binding IsBirthdayEasterEggVisible}"
+          Padding="24"
+          CornerRadius="34"
+          Background="#2D1C13">
+        <Grid ColumnDefinitions="1.3*,0.7*" ColumnSpacing="18">
+          <StackPanel Spacing="10">
+            <Border
+                HorizontalAlignment="Left"
+                Padding="12,7"
+                CornerRadius="999"
+                Background="#F9D38A">
+              <TextBlock
+                  FontSize="13"
+                  FontWeight="Bold"
+                  Foreground="#6A2A00"
+                  Text="{Binding BirthdayBadge}" />
+            </Border>
+
+            <TextBlock
+                FontSize="34"
+                FontWeight="Bold"
+                Foreground="#FFF7ED"
+                TextWrapping="Wrap"
+                Text="{Binding BirthdayHeadline}" />
+
+            <TextBlock
+                FontSize="17"
+                Foreground="#F3D9C4"
+                TextWrapping="Wrap"
+                Text="{Binding BirthdaySubheadline}" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Spacing="12" VerticalAlignment="Center">
+            <Border Padding="16,12" CornerRadius="20" Background="#493124">
+              <TextBlock
+                  FontSize="18"
+                  FontWeight="SemiBold"
+                  Foreground="#FFDDB9"
+                  TextWrapping="Wrap"
+                  Text="{Binding BirthdayHighlight}" />
+            </Border>
+            <WrapPanel>
+              <Border Margin="0,0,10,10" Padding="12,8" CornerRadius="999" Background="#5E3B2A">
+                <TextBlock Foreground="#FFE3C9" Text="生日快樂特效" />
+              </Border>
+              <Border Margin="0,0,10,10" Padding="12,8" CornerRadius="999" Background="#5E3B2A">
+                <TextBlock Foreground="#FFE3C9" Text="{Binding BirthdaySupportLine}" />
+              </Border>
+            </WrapPanel>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border
+          Grid.Row="1"
           Padding="30"
           CornerRadius="34"
           Background="#F2D2A9">
@@ -75,7 +130,7 @@
                   TextWrapping="Wrap"
                   Text="{Binding HighlightedReason.Reason}" />
 
-              <WrapPanel ItemWidth="150" ItemHeight="58">
+              <WrapPanel ItemWidth="160" ItemHeight="58">
                 <Border Margin="0,0,12,12" Padding="14,10" CornerRadius="18" Background="#F8E3CF">
                   <StackPanel>
                     <TextBlock Foreground="#8B5A3C" Text="篇章" />
@@ -94,7 +149,7 @@
         </Grid>
       </Border>
 
-      <Grid Grid.Row="1" ColumnDefinitions="1.2*,0.8*" ColumnSpacing="18">
+      <Grid Grid.Row="2" ColumnDefinitions="1.2*,0.8*" ColumnSpacing="18">
         <Border Padding="22" CornerRadius="28" Background="#FFF8F1">
           <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="16">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="12">
@@ -206,16 +261,16 @@
         </Border>
       </Grid>
 
-      <Border Grid.Row="2" Padding="22" CornerRadius="28" Background="#E9C09B">
+      <Border Grid.Row="3" Padding="22" CornerRadius="28" Background="#E9C09B">
         <Grid ColumnDefinitions="*,*" ColumnSpacing="18">
           <StackPanel Spacing="8">
             <TextBlock FontSize="22" FontWeight="Bold" Text="故事節奏" />
-            <TextBlock Foreground="#6F4B36" TextWrapping="Wrap" Text="這版不走一句式幹話，而是保留你給的整段敘事，讓鋒兄、塗哥、思敏、蕙瑄和今彩五三九的荒謬感完整成立。" />
+            <TextBlock Foreground="#6F4B36" TextWrapping="Wrap" Text="這版保留鋒兄、塗哥、思敏、蕙瑄與今彩五三九的完整敘事線，平常是最瞎結婚理由頁，逢指定日期就自動切出生日彩蛋。" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Spacing="8">
-            <TextBlock FontSize="22" FontWeight="Bold" Text="尾韻" />
-            <TextBlock Foreground="#6F4B36" TextWrapping="Wrap" Text="最後那句『如果幸福也能這樣瞎忙，那我明天也去買一張』我也放進摘要段落裡，讓整體收尾更像你原本的版本。" />
+            <TextBlock FontSize="22" FontWeight="Bold" Text="日期規則" />
+            <TextBlock Foreground="#6F4B36" TextWrapping="Wrap" Text="每年 4 月 3 日顯示塗哥生日快樂特效，並帶出『今彩539頭獎得主鋒兄』。每年 11 月 27 日顯示鋒兄生日快樂特效，並帶出『高考三級資訊處理榜首鋒兄』。" />
           </StackPanel>
         </Grid>
       </Border>
