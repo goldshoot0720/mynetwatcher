@@ -38,6 +38,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private string _historyWindowText = "最近 60 秒";
     private string _downloadPeakText = "峰值 0 B/s";
     private string _uploadPeakText = "峰值 0 B/s";
+    private string _avg10SummaryText = "下行 0 B/s · 上行 0 B/s";
+    private string _avg30SummaryText = "下行 0 B/s · 上行 0 B/s";
+    private string _avg60SummaryText = "下行 0 B/s · 上行 0 B/s";
     private string _exportStatusText = "尚未匯出";
     private string _logCountText = "已累積 0 筆紀錄";
     private string _processStatusText = "正在讀取單一程式流量...";
@@ -133,6 +136,24 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         get => _uploadPeakText;
         set => SetProperty(ref _uploadPeakText, value);
+    }
+
+    public string Avg10SummaryText
+    {
+        get => _avg10SummaryText;
+        set => SetProperty(ref _avg10SummaryText, value);
+    }
+
+    public string Avg30SummaryText
+    {
+        get => _avg30SummaryText;
+        set => SetProperty(ref _avg30SummaryText, value);
+    }
+
+    public string Avg60SummaryText
+    {
+        get => _avg60SummaryText;
+        set => SetProperty(ref _avg60SummaryText, value);
     }
 
     public string ExportStatusText
@@ -315,6 +336,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         AppendHistory(_uploadHistory, snapshot.TotalUploadBytesPerSecond);
         AppendTrafficLog(snapshot);
         UpdateHistoryChart();
+        UpdateAverageSummaries();
 
         _allProcesses = snapshot.Processes
             .Select(process => new ProcessTrafficViewModel
@@ -370,6 +392,33 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         HistoryWindowText = $"最近 {_downloadHistory.Count} 秒";
         DownloadPeakText = $"下載峰值 {TrafficFormatter.FormatBytesPerSecond(_downloadHistory.DefaultIfEmpty(0).Max())}";
         UploadPeakText = $"上傳峰值 {TrafficFormatter.FormatBytesPerSecond(_uploadHistory.DefaultIfEmpty(0).Max())}";
+    }
+
+    private void UpdateAverageSummaries()
+    {
+        Avg10SummaryText = BuildAverageSummary(10);
+        Avg30SummaryText = BuildAverageSummary(30);
+        Avg60SummaryText = BuildAverageSummary(60);
+    }
+
+    private string BuildAverageSummary(int seconds)
+    {
+        var downloadAvg = AverageLast(_downloadHistory, seconds);
+        var uploadAvg = AverageLast(_uploadHistory, seconds);
+        return $"下行 {TrafficFormatter.FormatBytesPerSecond(downloadAvg)} · 上行 {TrafficFormatter.FormatBytesPerSecond(uploadAvg)}";
+    }
+
+    private static double AverageLast(Queue<double> history, int count)
+    {
+        if (history.Count == 0)
+        {
+            return 0;
+        }
+
+        var values = history.ToArray();
+        var start = Math.Max(0, values.Length - count);
+        var slice = values[start..];
+        return slice.Average();
     }
 
     private static void AppendHistory(Queue<double> history, double value)
